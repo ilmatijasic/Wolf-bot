@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -14,7 +16,7 @@ import (
 
 // Command line flags
 var (
-	BotToken = flag.String("token", "MTE2MTY1NTMzMjQ5NDM4OTI5OQ.Go4XZI.E8PsXWAhapTsloEjdFVyCJvteYJdMAdMvZf25Q", "Bot authorization token")
+	BotToken = flag.String("token", "", "Bot authorization token")
 	appID    = flag.String("app", "1161655332494389299", "Application ID")
 	// guildID  = flag.String("guild", "778318814755815516", "ID of the testing guild")
 	guildID = flag.String("guild", "342812061207887872", "ID of the testing guild")
@@ -23,6 +25,23 @@ var (
 )
 
 var s *discordgo.Session
+
+func init() {
+	jsonFile, err := os.Open("config.json")
+
+	if err != nil {
+		log.Fatalf("Failed to load config.json: %v", err)
+	}
+
+	defer jsonFile.Close()
+
+	byteValue, _ := io.ReadAll(jsonFile)
+
+	var result map[string]interface{}
+	json.Unmarshal([]byte(byteValue), &result)
+	flag.Set("token", result["BotToken"].(string))
+	fmt.Println(result["BotToken"])
+}
 
 func init() { flag.Parse() }
 
@@ -285,6 +304,7 @@ func init() {
 }
 
 func main() {
+
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
